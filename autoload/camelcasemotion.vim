@@ -32,6 +32,8 @@ let s:forward_to_next_list = []
 call add(s:forward_to_next_list, '<\D')                            " word
 call add(s:forward_to_next_list, '^$')                             " empty line
 call add(s:forward_to_next_list, '%(^|\s)+\zs\k@!\S')              " non-keyword after whitespaces
+call add(s:forward_to_next_list, '>\zs\k@!\S')                     " punctuation right after a word  10/22/2025 Strike-F8
+call add(s:forward_to_next_list, '\k@!\S\ze<')                     " punctuation right before a word 10/22/2025 Strike-F8
 call add(s:forward_to_next_list, '><')                             " non-whitespace after word
 call add(s:forward_to_next_list, '[\{\}\[\]\(\)\<\>\&"'."'".']')   " brackets, parens, braces, quotes
 call add(s:forward_to_next_list, '\d+')                            " number
