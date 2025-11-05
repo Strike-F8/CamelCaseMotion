@@ -89,7 +89,38 @@ function! s:Move(direction, count, mode)
 
       let l:direction = (a:direction == 'w' ? '' : a:direction)
 
+      let l:pos_before = getpos('.')
       call search(s:forward_to_next, 'W' . l:direction)
+      " Ensure the last character of the last word of the line is
+      " deleted without affecting the next line when using dw
+      " This should mirror default vim behavior
+      if a:mode == 'o' && a:direction == 'w' && l:i == a:count - 1
+        let l:pos_after = getpos('.')
+        if l:pos_after[1] == l:pos_before[1]
+          let l:line_text = getline(l:pos_after[1])
+          let l:last_col = len(l:line_text)
+          let l:save_ve = &virtualedit
+          let l:ve_changed = 0
+          while l:pos_after[2] <= l:last_col
+                \ && matchstr(l:line_text, '\%' . l:pos_after[2] . 'c.') =~# '\k@!\S'
+            if l:pos_after[2] == l:last_col && !l:ve_changed
+              if empty(l:save_ve)
+                set virtualedit=onemore
+              elseif l:save_ve !~# '\<onemore\>'
+                execute 'set virtualedit=' . l:save_ve . ',onemore'
+              endif
+              let l:ve_changed = 1
+            endif
+            normal! l
+            let l:pos_after = getpos('.')
+            let l:line_text = getline(l:pos_after[1])
+            let l:last_col = len(l:line_text)
+          endwhile
+          if l:ve_changed
+            let &virtualedit = l:save_ve
+          endif
+        endif
+      endif
       " Note: word must be defined as '\<\D' to avoid that a word like
       " 1234Test is moved over as [1][2]34[T]est instead of [1]234[T]est
       " because \< matches with zero width, and \d\+ will then start
